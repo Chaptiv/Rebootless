@@ -454,58 +454,6 @@ Rebootless is still a technical preview.
 
 Found something else? Please [open an issue](https://github.com/Chaptiv/RebootLess/issues) and include your macOS version, Mac model, the affected subsystem, and any relevant Rebootless history/log output.
 
----
-
-## The Part Nobody Asked For — The History of Rebootless
-
-Rebootless started with one very specific and very annoying macOS problem.
-
-After some uptime, **Quick Look / Force Click file previews could simply stop working**. The Mac itself was fine. Finder was still there. Files still opened. But the preview feature was dead — and the reliable fix was often a full reboot.
-
-That raised the obvious question:
-
-> If one tiny part of macOS is broken, why should the entire computer have to restart?
-
-The first Rebootless prototype was therefore much simpler: a native menu bar utility with convenient buttons for restarting macOS services such as Finder, Dock, Core Audio, DNS, Quick Look, and others.
-
-That worked — but it exposed a bigger problem.
-
-A command returning exit code `0` only proves that **the command ran**. It does not prove that the user's problem was actually fixed.
-
-So Rebootless changed direction.
-
-Instead of becoming a giant collection of restart buttons, the project started evolving into a subsystem repair framework:
-
-```text
-Quick Look bug
-      |
-      v
-Menu bar service restarter
-      |
-      v
-"Exit code 0 != Fixed"
-      |
-      v
-Detect → Repair → Verify
-      |
-      v
-Quick Look reference implementation
-      |
-      v
-More verified macOS repair recipes
-      |
-      v
-Rebootless Technical Preview   <-- You are here
-```
-
-Quick Look became the reference implementation for that architecture: detect an actual failure, retry to avoid false alarms, apply the least disruptive repair, verify the result, and only escalate when necessary.
-
-The long-term goal is straightforward:
-
-> **Make "try rebooting your Mac" the last step, not the first one.**
-
----
-
 ## Disclaimer
 
 Rebootless is provided **"as is"**, without warranty of any kind, express or implied.
