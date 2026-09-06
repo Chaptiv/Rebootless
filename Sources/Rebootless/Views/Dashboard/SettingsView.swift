@@ -6,7 +6,76 @@ public struct SettingsView: View {
     
     public var body: some View {
         Form {
-            Section("General") {
+            Section("Subsystem Health Monitoring") {
+                Toggle("Enable background health monitoring", isOn: $serviceManager.isMonitoringEnabled)
+                    .help("Periodically runs lightweight, conservative functional checks to detect hung or unresponsive subsystems.")
+                
+                Text("Monitored Subsystems")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+                
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Quick Look Previews")
+                        .font(.system(size: 13))
+                    Spacer()
+                    Text("Active (Reference)")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary.opacity(0.6))
+                    Text("Core Audio (Sound & Mic)")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Planned")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary.opacity(0.6))
+                    Text("DNS Cache & Resolution")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Planned")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary.opacity(0.6))
+                    Text("Finder Subsystem")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Planned")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary.opacity(0.6))
+                    Text("Spotlight Indexer")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Planned")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Section("General & Startup") {
                 Toggle("Launch Rebootless at Login", isOn: Binding(
                     get: { launchAtLogin.isEnabled },
                     set: { launchAtLogin.setEnabled($0) }
@@ -15,16 +84,16 @@ public struct SettingsView: View {
             }
             
             Section("Notifications & Feedback") {
-                Toggle("Show macOS notification upon service restart", isOn: $serviceManager.notificationsEnabled)
-                    .help("Displays a system banner notification indicating whether the restart was successful.")
+                Toggle("Show notifications when problems are detected or repaired", isOn: $serviceManager.notificationsEnabled)
+                    .help("Displays native system banner notifications when a subsystem issue is confirmed or successfully repaired.")
                 
-                Toggle("Play sound feedback on restart completion", isOn: $serviceManager.soundEnabled)
-                    .help("Plays a subtle confirmation chime when a service finishes restarting.")
+                Toggle("Play sound feedback on repair completion", isOn: $serviceManager.soundEnabled)
+                    .help("Plays an audible confirmation chime when a repair finishes.")
             }
             
             Section("Safety & Confirmations") {
-                Toggle("Confirm high-impact actions (e.g. WindowServer)", isOn: $serviceManager.confirmDangerousActions)
-                    .help("Shows a warning confirmation dialog before executing services that log out your session.")
+                Toggle("Confirm high-impact actions (e.g. Finder restart, WindowServer)", isOn: $serviceManager.confirmDangerousActions)
+                    .help("Requires your confirmation before escalating repairs to actions that affect active app windows.")
             }
             
             Section("About Rebootless") {
@@ -46,13 +115,13 @@ public struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Rebootless")
                                 .font(.system(size: 16, weight: .bold))
-                            Text("Version 1.0.0 • Native macOS Utility")
+                            Text("Detect & repair broken macOS subsystems before you reboot.")
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }
                     }
                     
-                    Text("Rebootless helps you fix common macOS issues instantly by restarting individual system daemons and services with a single click—no Terminal, commands, or full system reboots required.")
+                    Text("Rebootless monitors your Mac for failing subsystems, explains symptoms in clear English, applies the least disruptive repair, and verifies that the issue actually recovered.")
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .padding(.top, 4)

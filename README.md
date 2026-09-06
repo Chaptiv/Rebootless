@@ -1,60 +1,72 @@
 # Rebootless ⚡️
-> **One-click macOS subsystem & service restarter right from your Menu Bar.** Fix frozen apps, sound glitches, Wi-Fi drops, and desktop hangs without Terminal commands or full system reboots.
+> **Detect and repair broken macOS subsystems before you reboot.**
+> Your Mac often doesn’t need a full reboot—it needs the right subsystem repaired.
 
 ---
 
-## 💡 Why Rebootless?
+## 💡 The Core Idea
 
-macOS is reliable, but over days and weeks of heavy use, background services can get stuck:
-- **CoreAudio** glitches out, mic stops working, or AirPods won't output sound.
-- **Finder** hangs during a file copy or open/save dialog.
-- **Dock** hides itself, or Mission Control stutters.
-- **DNS Cache** refuses to resolve websites after a VPN disconnect.
-- **Quick Look** spacebar previews show a blank screen.
-- **AirDrop** fails to find contacts or nearby Macs.
+macOS is a robust operating system, but prolonged uptime and heavy multitasking can cause individual subsystems to become unresponsive:
+- **Quick Look** spacebar previews show a blank box or hang indefinitely.
+- **Force Click** previews stop opening.
+- Background daemons deadlock while parent applications appear fine.
 
-Most users either endure a frustrating full Mac reboot or need to remember obscure Terminal commands like `sudo killall coreaudiod` or `dscacheutil -flushcache`.
+Most users either endure a disruptive full Mac reboot or struggle with obscure Terminal commands (`qlmanage -r`, `killall QuickLookUIService`, `launchctl kickstart`).
 
-**Rebootless solves this with one click.** It stays quietly in your Menu Bar as a sleek icon. Click it to restart your favorited services immediately, or open the Dashboard to browse services, use the Troubleshooter, or add your own custom commands.
+**Rebootless solves this with proactive health monitoring and staged, verified repairs.**
 
----
-
-## ✨ Features
-
-- **Discrete Menu Bar Utility**: Stays out of your way on the right side of the macOS Menu Bar.
-- **1-Click Favorite Restarts**: Star your most-used services to restart them directly from the Menu Bar dropdown with animated live feedback (spinner ➔ checkmark).
-- **Restart All Favorites**: One button to refresh all your pinned services at once.
-- **Interactive "Fix My Problem" Troubleshooter**: Describe your symptom in plain English ("Sound is crackling", "Desktop frozen", "Spacebar previews blank") and let Rebootless trigger the exact underlying macOS daemon fix.
-- **Comprehensive Built-In Catalog**: 18+ preconfigured system services across UI, Audio, Networking, Hardware, and Utilities.
-- **Custom Services**: Add your own shell scripts and commands (e.g., Docker Desktop, Tailscale, local web servers) with custom icons and admin privileges.
-- **Technical Disclosure**: Expand any service card to view and copy the exact shell command being executed.
-- **History & Diagnostic Logs**: Review past restart events, execution duration in milliseconds, exit codes, and output streams.
-- **Native macOS Experience**: Built with 100% Swift and SwiftUI, supporting Dark/Light mode, SF Symbols, system notifications, and `SMAppService` launch-at-login.
+```
+Monitor (conservative) ➔ Detect abnormal behavior ➔ Explain symptoms ➔ Notify ➔ Offer repair ➔ Least disruptive repair ➔ Verify recovery
+```
 
 ---
 
-## 🛠 Built-in Services Catalog
+## 🌟 How It Works
 
-| Category | Service | What Problem It Solves | Command Executed | Elevated? |
-|---|---|---|---|:---:|
-| **System UI** | **Finder** | Frozen desktop, stuck file transfers, broken folder views, hung open/save dialogs | `killall Finder` | No |
-| **System UI** | **Dock & Mission Control** | Missing Dock, stuck app icon badges, Mission Control stutter, Stage Manager glitches | `killall Dock` | No |
-| **System UI** | **Menu Bar & Control Center** | Frozen clock, stuck menu bar icons, unresponsive Control Center toggles | `killall SystemUIServer` | No |
-| **System UI** | **Notification Center** | Stuck notification banners, unresponsive notification widgets | `killall NotificationCenter` | No |
-| **System UI** | **Quick Look Previews** | Spacebar preview not showing images, PDFs, videos, or code files | `qlmanage -r && qlmanage -r cache` | No |
-| **System UI** | **Wallpaper Agent** | Black desktop background, frozen dynamic wallpapers | `killall WallpaperAgent` | No |
-| **System UI** | **Touch Bar & Control Strip** | Frozen or black Touch Bar on supported MacBook Pro models | `pkill "Touch Bar agent"; killall ControlStrip` | No |
-| **Audio & Media** | **Core Audio (Sound)** | No sound, crackling audio, AirPods not playing sound, input mic not detected | `launchctl kickstart -kp ... \|\| killall -9 coreaudiod` | Yes (Touch ID) |
-| **Audio & Media** | **AirPlay & Sidecar** | Screen mirroring dropouts, iPad Sidecar connection failure | `killall AirPlayXPCHelper` | No |
-| **Networking** | **DNS Cache** | Websites not loading after VPN/router changes, local hostname lookup fail | `dscacheutil -flushcache && killall -HUP mDNSResponder` | No |
-| **Networking** | **Bluetooth Subsystem** | Unresponsive Bluetooth devices, wireless headphone dropouts, mouse stutter | `pkill -9 bluetoothd` | Yes (Touch ID) |
-| **Networking** | **Wi-Fi Interface** | Self-assigned IP (169.254.x.x), stuck connecting, network connection drops | `networksetup -setairportpower ... off/on` | No |
-| **Networking** | **AirDrop & Bonjour** | AirDrop failing to discover contacts, offline network printers, `.local` domains | `killall -9 mDNSResponder` | Yes (Touch ID) |
-| **System** | **Spotlight Indexer** | Search returning blank results, files not indexed, runaway CPU indexing | `killall mds; killall mds_stores` | No |
-| **System** | **Siri & Dictation** | Voice dictation hanging, Siri not responding, mic indicator stuck orange | `killall Siri; killall com.apple.siri.embeddedspeech` | No |
-| **System** | **Time Machine Engine** | Backup hanging on 'Preparing backup...', stuck disk verification | `killall backupd` | No |
-| **System** | **Print Spooler** | Hung print jobs blocking the printer queue | `cancel -a` | No |
-| **Advanced** | **WindowServer** | Emergency graphics reset for total visual lockups (⚠️ logs out user session) | `killall -HUP WindowServer` | Yes |
+1. **Conservative Health Monitoring**: Runs periodic, non-intrusive functional checks against supported subsystems. Transient glitches are retried before confirming a problem to eliminate notification spam.
+2. **Actionable Native Notifications**: When an issue is confirmed, Rebootless explains what you might be experiencing in plain English and offers a direct **[Repair]** button.
+3. **Escalating Repair Recipes**: Repairs begin with the softest, least disruptive action (e.g. cache flush/soft reset). If verification fails, it escalates to service daemon restarts, and only asks to restart user-facing apps (like Finder) when strictly necessary.
+4. **Independent Verification**: A shell command exiting with status 0 is **not** treated as "Fixed". Rebootless runs real functional probes to verify that the subsystem is truly healthy before claiming success.
+5. **Recovery Detection**: If a subsystem recovers on its own, Rebootless detects the recovery, resolves the active issue, and avoids sending outdated notifications.
+6. **Local Symptom Matching**: In the Troubleshooter, type what feels broken (e.g. *"spacebar preview doesn't work"*, *"force touch preview stopped working"*). Deterministic on-device matching connects your symptom directly to the right repair recipe. **No cloud. No LLM.**
+7. **Direct Service Controls**: Power users can still manually restart individual services (Finder, Dock, Core Audio, DNS cache, Wi-Fi) directly from the Menu Bar or Dashboard.
+
+---
+
+## 🚦 Subsystem Implementation Roadmap
+
+| Subsystem | Status | Proactive Monitoring | Staged Repair Recipe | Functional Verification |
+|---|:---:|:---:|:---:|:---:|
+| **Quick Look Previews** | **Available** | Real functional probe + retry + secondary verification | 3 stages: Soft Reset ➔ Daemon Restart ➔ Finder Reset (Confirmed) | Active (`qlmanage` server & thumbnail probes) |
+| **Core Audio (Sound & Mic)** | *Planned* | Audio daemon & HAL device probe | Audio service reset ➔ HAL kickstart | Audio device enumeration |
+| **DNS Cache & Resolution** | *Planned* | Resolution latency & loopback probe | Cache flush ➔ mDNSResponder HUP | Hostname resolution test |
+| **Finder Subsystem** | *Planned* | Process & AppleEvent ping | Soft relaunch ➔ Process reset | Finder responsiveness probe |
+| **Spotlight Indexer** | *Planned* | Indexing lock detection | Cache reset ➔ Daemon restart | Metadata query test |
+
+---
+
+## 🛠 Quick Look Reference Implementation Flow
+
+```mermaid
+graph TD
+    A[Background Health Probe] -->|Fails| B[Wait 5s & Retry]
+    B -->|Succeeds| C[Discard transient glitch]
+    B -->|Fails| D[Secondary Plugin Verification]
+    D -->|Fails| E[Confirm Problem Detected]
+    E --> F[Send macOS Notification with Symptoms]
+    F --> G[User clicks Repair]
+    G --> H[Stage 1: Soft Reset qlmanage -r]
+    H --> I{Verify Functional Probe}
+    I -->|Healthy| J[✓ Repaired in 0.4s - No Reboot Required]
+    I -->|Still Failing| K[Stage 2: Restart QuickLookUIService & Daemons]
+    K --> L{Verify Functional Probe}
+    L -->|Healthy| J
+    L -->|Still Failing| M[Prompt User: Restart Finder?]
+    M -->|Confirmed| N[Stage 3: Restart Finder]
+    N --> O{Final Verification}
+    O -->|Healthy| J
+    O -->|Fails| P[Suggest Full Mac Restart]
+```
 
 ---
 
@@ -64,14 +76,9 @@ Most users either endure a frustrating full Mac reboot or need to remember obscu
 - macOS 14.0 (Sonoma) or newer (including macOS Sequoia / macOS 26).
 - Apple Silicon or Intel Mac.
 
-### Building & Running
-You can compile and package the app in a single step using the included build script:
-
+### Building & Launching
 ```bash
-# Clone or navigate to the repository
-cd rebootless
-
-# Build the release .app bundle
+# Build the release app bundle
 ./build_app.sh
 
 # Launch Rebootless
@@ -79,35 +86,25 @@ open Rebootless.app
 ```
 
 ### Installing into Applications
-To make Rebootless permanently available in your Applications folder:
 ```bash
 cp -R Rebootless.app /Applications/
 ```
 
-You can also run it directly in developer mode via Swift Package Manager:
+### Running Unit Tests
+Rebootless includes a test suite covering the Health Monitor, Issue Tracker deduplication, escalation logic, verification checks, and symptom matching with mocks:
 ```bash
-swift run
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
 ```
 
 ---
 
-## 🧪 Running Unit Tests
+## 🔒 Privacy & Safety
 
-Rebootless includes a test suite covering model integrity, catalog mappings, serialization, and command execution:
-
-```bash
-swift test
-```
-
----
-
-## 🔒 Security & Privileges
-
-- Services that operate in user space (Finder, Dock, Quick Look, DNS cache flush, etc.) execute directly as your standard user with zero administrative prompts.
-- Subsystem daemons that require elevated root permissions (such as `coreaudiod` or `bluetoothd`) use standard AppleScript elevation, cleanly triggering macOS's native Touch ID or Administrator Password prompt. Rebootless never stores or asks for passwords directly.
-- High-impact actions like `WindowServer` (which resets the display session and logs you out) feature safety confirmations enabled by default.
+- **100% Local & Offline**: All health checks, symptom tokenizers, and repairs run strictly on your Mac. No network telemetry, no analytics, no cloud models.
+- **Safety First**: Dangerous actions (like restarting Finder or WindowServer) require explicit confirmation.
+- **Privilege Separation**: User-space services execute without elevated privileges; system-level daemons request macOS Touch ID / Password authorization transparently via system prompts.
 
 ---
 
 ## 📄 License
-MIT License. Feel free to use, modify, and contribute.
+MIT License.

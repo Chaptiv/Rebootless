@@ -5,8 +5,6 @@ public struct MenuBarView: View {
     var onOpenDashboard: () -> Void
     var onQuit: () -> Void
     
-    @State private var quickSearch: String = ""
-    
     public init(onOpenDashboard: @escaping () -> Void = {}, onQuit: @escaping () -> Void = { NSApp.terminate(nil) }) {
         self.onOpenDashboard = onOpenDashboard
         self.onQuit = onQuit
@@ -33,7 +31,7 @@ public struct MenuBarView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Rebootless")
                         .font(.system(size: 13, weight: .bold))
-                    Text("One-Click macOS Fixer")
+                    Text("Proactive macOS Repair")
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
@@ -58,9 +56,91 @@ public struct MenuBarView: View {
             
             Divider()
             
+            // Subsystem Health & Repair Status Section
+            VStack(alignment: .leading, spacing: 6) {
+                if !serviceManager.activeIssues.isEmpty {
+                    // Active Problem Banner
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                                .font(.system(size: 12))
+                            Text("\(serviceManager.activeIssues.count) Issue Detected")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.orange)
+                            Spacer()
+                        }
+                        
+                        ForEach(serviceManager.activeIssues) { issue in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(issue.subsystemName)
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text("Preview subsystem not responding")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                if let recipe = serviceManager.repairRecipes.first(where: { $0.id == issue.recipeId }) {
+                                    Button {
+                                        Task {
+                                            _ = await serviceManager.executeRepair(for: recipe, isAutomatic: false)
+                                        }
+                                    } label: {
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "bolt.fill")
+                                                .font(.system(size: 9))
+                                            Text("Repair")
+                                                .font(.system(size: 11, weight: .semibold))
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3.5)
+                                        .background(Color.purple)
+                                        .foregroundColor(.white)
+                                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(8)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(6)
+                        }
+                    }
+                    .padding(10)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(8)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                } else {
+                    // All Healthy Banner
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12))
+                        
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("System Repair Status")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("✓ Quick Look monitored • No issues detected")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                }
+            }
+            
+            Divider()
+            
             // Favorites Section Header
             HStack {
-                Text("FAVORITES")
+                Text("FAVORITE SERVICES")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.secondary)
                 
@@ -103,7 +183,7 @@ public struct MenuBarView: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, 14)
                 .padding(.horizontal, 10)
             } else {
                 ScrollView {
@@ -115,15 +195,15 @@ public struct MenuBarView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                 }
-                .frame(maxHeight: 220)
+                .frame(maxHeight: 180)
             }
             
             Divider()
                 .padding(.top, 4)
             
-            // Quick Troubleshoot Helpers
+            // Quick Direct Controls
             VStack(alignment: .leading, spacing: 5) {
-                Text("QUICK FIXES")
+                Text("DIRECT SERVICE RESTARTS")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 14)
@@ -196,7 +276,6 @@ private struct QuickFixButton: View {
             HStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 10))
-                    .foregroundColor(color)
                 Text(title)
                     .font(.system(size: 11, weight: .medium))
             }
